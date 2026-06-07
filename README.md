@@ -2,7 +2,31 @@
 
 Microservicio Spring Boot para un Sistema de Gestion de Pedidos y Generacion de Guias de Despacho. Mantiene el stack de `CloudNativeS1`: Java 21, Spring Boot, Maven, H2/JPA, AWS SDK S3, Docker y GitHub Actions.
 
+## Funcionalidades
+
+- Generacion de guias de despacho en formato TXT.
+- Almacenamiento temporal en EFS/local.
+- Subida de guias a AWS S3.
+- Organizacion de archivos por fecha y transportista.
+- Descarga desde S3 con validacion de permisos por transportista.
+- Modificacion, reemplazo y eliminacion de guias.
+- Consulta de historial por transportista y fecha.
+- Pipeline con Docker Hub, GitHub Actions y despliegue en EC2.
+
 ## Ejecutar localmente
+
+Configurar variables de entorno:
+
+```bash
+export AWS_REGION=us-east-1
+export AWS_S3_GUIAS_BUCKET=nombre-del-bucket
+export GUIAS_EFS_DIR=./efs
+export AWS_ACCESS_KEY_ID=tu-access-key-id
+export AWS_SECRET_ACCESS_KEY=tu-secret-access-key
+export AWS_SESSION_TOKEN=tu-session-token
+```
+
+Iniciar la aplicacion:
 
 ```bash
 mvn spring-boot:run
@@ -16,19 +40,41 @@ La consola H2 queda disponible en `http://localhost:8080/h2-console`.
 - User: `sa`
 - Password: dejar vacio
 
-Variables para AWS y EFS:
-
-```bash
-export AWS_REGION=us-east-1
-export AWS_S3_GUIAS_BUCKET=nombre-del-bucket
-export GUIAS_EFS_DIR=./efs
-```
-
 Las guias generadas se guardan temporalmente en EFS/local y luego pueden subirse a S3 con una key organizada por fecha y transportista:
 
 ```text
 yyyyMMdd/transportista/guia-1.txt
 ```
+
+Ejemplo de archivo local:
+
+```text
+efs/20260607/transportes-cordillera/guia-1.txt
+```
+
+## Base De Datos
+
+El esquema SQL esta en:
+
+```text
+src/main/resources/schema.sql
+```
+
+Tambien se incluye el modelo en DBML:
+
+```text
+docs/schema.dbml
+```
+
+Diagrama del modelo:
+
+![Modelo de base de datos](docs/Schema_DB.png)
+
+Tablas principales:
+
+- `transportistas`
+- `pedidos`
+- `guias_despacho`
 
 ## Endpoints
 
@@ -138,9 +184,3 @@ Secrets requeridos:
 | `AWS_SESSION_TOKEN` | Token temporal, si corresponde. |
 | `AWS_S3_GUIAS_BUCKET` | Bucket donde se guardan las guias. |
 
-Durante el despliegue se montan volumenes persistentes:
-
-```text
-~/guias-despacho-data:/app/data
-/mnt/efs:/app/efs
-```
