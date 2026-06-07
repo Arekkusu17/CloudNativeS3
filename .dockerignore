@@ -1,0 +1,6 @@
+target/
+data/
+efs/
+.git/
+.github/
+.DS_Store

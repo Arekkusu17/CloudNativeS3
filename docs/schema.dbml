@@ -1,0 +1,43 @@
+Table transportistas {
+  id bigint [pk, increment]
+  nombre varchar(120) [not null]
+  rut varchar(20) [not null, unique]
+  email_contacto varchar(160) [not null]
+}
+
+Table pedidos {
+  id bigint [pk, increment]
+  numero_pedido varchar(40) [not null, unique]
+  cliente_nombre varchar(120) [not null]
+  direccion_destino varchar(220) [not null]
+  comuna_destino varchar(100) [not null]
+  descripcion_carga varchar(300) [not null]
+  peso_kg decimal(12, 2) [not null]
+  fecha_pedido timestamp [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table guias_despacho {
+  id bigint [pk, increment]
+  pedido_id bigint [not null, unique]
+  transportista_id bigint [not null]
+  numero_guia varchar(40) [not null, unique]
+  nombre_archivo varchar(160) [not null]
+  ruta_efs varchar(500)
+  bucket_s3 varchar(120)
+  key_s3 varchar(500)
+  fecha_emision timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  fecha_subida_s3 timestamp
+  estado varchar(30) [not null, default: 'GENERADA']
+}
+
+Ref: guias_despacho.pedido_id > pedidos.id [delete: cascade]
+Ref: guias_despacho.transportista_id > transportistas.id
+
+Index idx_guias_transportista_fecha {
+  guias_despacho.transportista_id
+  guias_despacho.fecha_emision
+}
+
+Index idx_guias_key_s3 {
+  guias_despacho.key_s3
+}
